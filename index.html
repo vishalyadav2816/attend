@@ -68,7 +68,7 @@
 <body>
     <div class="form-container">
         <h2>Attendance Form</h2>
-        <form id="attendanceForm" action="submit_form.php" method="post" enctype="multipart/form-data">
+        <form id="attendanceForm" onsubmit="submitForm(event)">
             <label for="name">Name:</label>
             <input type="text" id="name" name="name" required>
             <span id="nameError" class="error">Please enter a valid name (alphabets only).</span>
@@ -94,6 +94,8 @@
     </div>
 
     <script>
+        const scriptURL = 'YOUR_WEB_APP_URL_HERE';
+
         function getLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
@@ -148,16 +150,43 @@
             }
         }
 
-        document.getElementById('attendanceForm').addEventListener('submit', validateForm);
-
-        document.getElementById('photo').addEventListener('change', (event) => {
+        async function submitForm(event) {
+            event.preventDefault();
             validateForm(event);
-            if (event.defaultPrevented) {
-                event.stopPropagation();
-            } else {
-                document.getElementById('attendanceForm').submit();
+
+            if (!event.defaultPrevented) {
+                const form = document.getElementById('attendanceForm');
+                const formData = new FormData(form);
+                const data = {};
+                formData.forEach((value, key) => {
+                    data[key] = value;
+                });
+
+                if (form.photo.files[0]) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        data.photoUrl = reader.result;
+                        fetch(scriptURL, {
+                            method: 'POST',
+                            body: JSON.stringify(data),
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        }).then(response => response.json())
+                          .then(result => {
+                              alert('Form submitted successfully.');
+                              form.reset();
+                              getLocation();
+                              fillTime();
+                          }).catch(error => {
+                              alert('Form submission failed.');
+                              console.error('Error:', error);
+                          });
+                    };
+                    reader.readAsDataURL(form.photo.files[0]);
+                }
             }
-        });
+        }
 
         window.onload = () => {
             getLocation();
