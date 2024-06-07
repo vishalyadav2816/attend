@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Attendance Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .form-container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            max-width: 100%;
+            text-align: center;
+        }
+        h2 {
+            color: #333333;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666666;
+            text-align: left;
+        }
+        input[type="text"],
+        input[type="tel"],
+        input[type="file"],
+        input[type="submit"],
+        input[type="time"] {
+            width: calc(100% - 16px);
+            padding: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #dddddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: red;
+            margin-bottom: 15px;
+            display: none;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Attendance Form</h2>
+        <form id="attendanceForm" action="submit_form.php" method="post" enctype="multipart/form-data">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+            <span id="nameError" class="error">Please enter a valid name (alphabets only).</span>
+
+            <label for="phone">Phone Number:</label>
+            <input type="tel" id="phone" name="phone" required maxlength="10">
+            <span id="phoneError" class="error">Please enter a valid 10-digit phone number.</span>
+
+            <label for="latitude">Latitude:</label>
+            <input type="text" id="latitude" name="latitude" readonly>
+
+            <label for="longitude">Longitude:</label>
+            <input type="text" id="longitude" name="longitude" readonly>
+
+            <label for="time">Time:</label>
+            <input type="time" id="time" name="time" required readonly>
+
+            <label for="photo">Take Photo:</label>
+            <input type="file" id="photo" name="photo" accept="image/*" capture="camera" required>
+
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+
+    <script>
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    document.getElementById('latitude').value = latitude;
+                    document.getElementById('longitude').value = longitude;
+                }, () => {
+                    alert('Location access denied. Please allow location access to fill this field.');
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+        function fillTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const timeString = `${hours}:${minutes}`;
+            document.getElementById('time').value = timeString;
+        }
+
+        function validateForm(event) {
+            const nameField = document.getElementById('name');
+            const phoneField = document.getElementById('phone');
+            const nameError = document.getElementById('nameError');
+            const phoneError = document.getElementById('phoneError');
+
+            let isValid = true;
+
+            // Validate name (only letters)
+            const nameRegex = /^[A-Za-z\s]+$/;
+            if (!nameRegex.test(nameField.value)) {
+                nameError.style.display = 'block';
+                isValid = false;
+            } else {
+                nameError.style.display = 'none';
+            }
+
+            // Validate phone (exactly 10 digits)
+            const phoneRegex = /^\d{10}$/;
+            if (!phoneRegex.test(phoneField.value)) {
+                phoneError.style.display = 'block';
+                isValid = false;
+            } else {
+                phoneError.style.display = 'none';
+            }
+
+            if (!isValid) {
+                event.preventDefault();
+            }
+        }
+
+        document.getElementById('attendanceForm').addEventListener('submit', validateForm);
+
+        document.getElementById('photo').addEventListener('change', (event) => {
+            validateForm(event);
+            if (event.defaultPrevented) {
+                event.stopPropagation();
+            } else {
+                document.getElementById('attendanceForm').submit();
+            }
+        });
+
+        window.onload = () => {
+            getLocation();
+            fillTime();
+        };
+    </script>
+</body>
+</html>
