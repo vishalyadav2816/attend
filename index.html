@@ -68,7 +68,7 @@
 <body>
     <div class="form-container">
         <h2>Attendance Form</h2>
-        <form id="attendanceForm" onsubmit="submitForm(event)">
+        <form id="attendanceForm" action="https://script.google.com/macros/s/AKfycbzjHKKhOKq_CWTm75DmxHkMDJZLVvu1oEt6WhRnHR3PJT84z9U8oRDpeXFcxxNjHtRB/exec" method="post" enctype="multipart/form-data">
             <label for="name">Name:</label>
             <input type="text" id="name" name="name" required>
             <span id="nameError" class="error">Please enter a valid name (alphabets only).</span>
@@ -94,8 +94,6 @@
     </div>
 
     <script>
-        const scriptURL = 'https://vishalyadav2816.github.io/attend/';
-
         function getLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((position) => {
@@ -150,43 +148,11 @@
             }
         }
 
-        async function submitForm(event) {
-            event.preventDefault();
-            validateForm(event);
+        document.getElementById('attendanceForm').addEventListener('submit', validateForm);
 
-            if (!event.defaultPrevented) {
-                const form = document.getElementById('attendanceForm');
-                const formData = new FormData(form);
-                const data = {};
-                formData.forEach((value, key) => {
-                    data[key] = value;
-                });
-
-                if (form.photo.files[0]) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                        data.photoUrl = reader.result;
-                        fetch(scriptURL, {
-                            method: 'POST',
-                            body: JSON.stringify(data),
-                            headers: {
-                                'Content-Type': 'application/json'
-                            }
-                        }).then(response => response.json())
-                          .then(result => {
-                              alert('Form submitted successfully.');
-                              form.reset();
-                              getLocation();
-                              fillTime();
-                          }).catch(error => {
-                              alert('Form submission failed.');
-                              console.error('Error:', error);
-                          });
-                    };
-                    reader.readAsDataURL(form.photo.files[0]);
-                }
-            }
-        }
+        document.getElementById('photo').addEventListener('change', () => {
+            document.getElementById('attendanceForm').submit();
+        });
 
         window.onload = () => {
             getLocation();
